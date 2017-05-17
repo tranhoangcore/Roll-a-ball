@@ -1,62 +1,60 @@
-<!DOCTYPE html>
 <html>
 <head>
-	<title>Roll a ball</title>
-	<script src="lib/glMatrix-0.9.5.min.js"></script>
-	<script src="lib/webgl-utils.js"></script>
-	<script src="lib/cuon-matrix.js"></script>
-	<script src="lib/ground.js"></script>
-	<script src="lib/camera.js"></script>
-	<script src="lib/target.js"></script>
-	<script src="lib/ball.js"></script>
-	<script id="vshader" type="x-shader/x-vertex">
-		attribute vec4 aPosition;
-		attribute vec2 aTextureCoord;
-		attribute vec4 aNormal;
+<title>Roll a ball</title>
 
-		uniform mat4 uPMatrix;
-		uniform mat4 uVMatrix;
-		uniform mat4 uMMatrix;
-		uniform mat4 uNMatrix;
+<script src="lib/glMatrix.js"></script>
+<script src="lib/webgl-utils.js"></script>
+<script src="lib/ground.js"></script>
+<script src="lib/cube.js"></script>
+<script src="lib/camera.js"></script>
+<script src="lib/ball.js"></script>
 
-		uniform vec3 uLightDirection;
+<script id="shader-fs" type="x-shader/x-fragment">
+    precision mediump float;
 
-		varying vec2 vTextureCoord;
-		varying vec3 vLightWeighting;
+    varying vec2 vTextureCoord;
+    varying vec3 vLightWeighting;
 
-		void main() {
-			gl_Position = uPMatrix * uVMatrix * uMMatrix * aPosition;
-			vec4 normal = uNMatrix * aNormal;
-			float nDotL = max(dot(uLightDirection, normalize(normal.xyz)), 0.0);
-			vLightWeighting = vec3(0.8, 0.8, 0.8) + vec3(1, 1, 1) *nDotL;
-			vTextureCoord = aTextureCoord;
-		}
-	</script>
-	<script id="fshader" type="x-shader/x-fragment">
-		precision mediump float;
+    uniform sampler2D uSampler;
 
-		uniform sampler2D uSampler;
-
-		varying vec2 vTextureCoord;
-		varying vec3 vLightWeighting;
-
-		void main() {
-			vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-			gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
-		}
-	</script>
-	<style type="text/css">
-		#my_canvas, #scoreBoard {
-			position: absolute;
-			left: 0;
-			top: 0;
-		}
-	</style>
-</head>
-<body onload="webGL();">
-	<canvas id="rollABall" width="600" height="600"></canvas>
-	<canvas id="scoreBoard" width="600" height="600"></canvas>
-	<script src="app.js"></script>
+    void main(void) {
+        vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+        gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);
+    }
 </script>
+
+<script id="shader-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec3 aVertexNormal;
+    attribute vec2 aTextureCoord;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    uniform mat3 uNMatrix;
+
+
+    uniform vec3 uLightingDirection;
+
+    varying vec2 vTextureCoord;
+    varying vec3 vLightWeighting;
+
+    void main(void) {
+        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        vTextureCoord = aTextureCoord;
+
+        vec3 transformedNormal = uNMatrix * aVertexNormal;
+        float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
+        vLightWeighting = vec3(0.5, 0.5, 0.5) + vec3(1, 1, 1) * directionalLightWeighting;
+    }
+</script>
+
+
+</head>
+
+
+<body onload="webGLStart();">
+    <canvas id="rollaball" style="position: absolute;left:0;top:0" width="800" height="800"></canvas>
+    <canvas id="scoreboard" style="position: absolute;left:0;top:0" width="800" height="800"></canvas>
+<script src="lib/app.js"></script>
 </body>
-</html> 
+</html>
